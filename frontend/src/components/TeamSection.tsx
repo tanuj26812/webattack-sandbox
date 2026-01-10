@@ -17,7 +17,8 @@ const teamMembers = [
     name: "Digvijay Chandel",
     role: "AI Developer",
     image: "/team/Digvijay.jpg",
-    linkedin: "https://www.linkedin.com/in/digvijay-chandel-5b4b25210/",
+    linkedin: "https://www.linkedin.com/in/digvijay-singh-chandel-9726993a4/",
+    github:"https://github.com/digvijaysinghchandel043-labs"
   },
   {
     name: "Sujal Raghuvanshi",
