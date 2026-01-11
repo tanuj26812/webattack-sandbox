@@ -38,10 +38,7 @@ const teamMembers = [
 
 const TeamSection = () => {
   return (
-    <section
-      id="team"
-      className="relative z-10 py-24 px-6 border-t border-white/10"
-    >
+    <section id="team" className="relative z-10 py-24 px-6 border-t border-white/10">
       <div className="max-w-6xl mx-auto text-center">
         <h2 className="text-3xl md:text-4xl font-semibold text-white mb-4">
           Meet the Team
@@ -104,18 +101,18 @@ const TeamSection = () => {
               <h3 className="text-white font-medium">{member.name}</h3>
               <p className="text-cyan-400 text-sm mt-1">{member.role}</p>
               <div className="flex justify-center gap-3 mt-2">
-              {member.linkedin && (
-                <a href={member.linkedin} target="_blank">
-                  <img src="/icons/linkedin.png" className="w-5 h-5" />
-                </a>
-              )}
+                {member.linkedin && (
+                  <a href={member.linkedin} target="_blank" rel="noopener noreferrer">
+                    <img src="/icons/linkedin.png" className="w-5 h-5" alt="LinkedIn" />
+                  </a>
+                )}
 
-              {member.github && (
-                <a href={member.github} target="_blank">
-                  <img src="/icons/github.png" className="w-5 h-5" />
-                </a>
-              )}
-            </div>
+                {member.github && (
+                  <a href={member.github} target="_blank" rel="noopener noreferrer">
+                    <img src="/icons/github.png" className="w-5 h-5" alt="GitHub" />
+                  </a>
+                )}
+              </div>
             </div>
           ))}
         </div>

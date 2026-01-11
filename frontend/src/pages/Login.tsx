@@ -21,7 +21,7 @@ const Login = () => {
     // Simulate login delay
     await new Promise((resolve) => setTimeout(resolve, 800));
     
-    login();
+    login(username);
     navigate('/');
   };
 

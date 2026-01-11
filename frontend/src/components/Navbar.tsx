@@ -4,15 +4,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Shield, User } from 'lucide-react';
 
 const Navbar = () => {
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, logout, user } = useAuth();
   const navigate = useNavigate();
 
   const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'About', href: '#' },
-    { name: 'Team', href: '#' },
-    { name: 'Contact', href: '#' },
+    { name: 'Home', href: '#home' },
+    { name: 'About', href: '#about' },
+    { name: 'Team', href: '#team' },
+    { name: 'Contact', href: '#contact' },
   ];
+
 
   return (
     <motion.nav
@@ -37,32 +38,43 @@ const Navbar = () => {
           {/* Center Navigation */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
-              <Link
+              <a
                 key={link.name}
-                to={link.href}
-                className="relative text-sm text-muted-foreground hover:text-foreground transition-colors duration-300 group"
+                href={link.href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const section = document.querySelector(link.href);
+                  section?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="relative text-sm text-muted-foreground hover:text-foreground transition-colors duration-300 group cursor-pointer"
               >
                 {link.name}
                 <span className="absolute -bottom-1 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full" />
-              </Link>
+              </a>
             ))}
           </div>
 
           {/* Right Side - Login/Avatar */}
           <div className="flex items-center gap-4">
             {isLoggedIn ? (
-              <motion.button
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                onClick={logout}
-                className="relative group"
-              >
-                <div className="w-10 h-10 rounded-full border-2 border-primary/50 bg-secondary flex items-center justify-center transition-all duration-300 group-hover:border-primary group-hover:shadow-[0_0_15px_hsl(var(--cyber-glow)/0.4)]">
-                  <User className="h-5 w-5 text-primary" />
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-primary animate-pulse" />
-              </motion.button>
+              <div className="flex items-center gap-2">
+                <motion.button
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  onClick={logout}
+                  className="relative group"
+                >
+                  <div className="w-10 h-10 rounded-full border-2 border-primary/50 bg-secondary flex items-center justify-center transition-all duration-300 group-hover:border-primary group-hover:shadow-[0_0_15px_hsl(var(--cyber-glow)/0.4)]">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-primary animate-pulse" />
+                </motion.button>
+
+                <span className="text-sm text-primary font-mono">
+                  {user}
+                </span>
+              </div>
             ) : (
               <motion.button
                 whileHover={{ scale: 1.02 }}

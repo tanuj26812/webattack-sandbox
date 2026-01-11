@@ -21,7 +21,7 @@ const HeroSection = () => {
   ];
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-20">
+    <section id="home" className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-20">
       {/* Glowing Lightbulb Icon */}
       <motion.div
         className="absolute top-32 right-[15%] hidden lg:block"
