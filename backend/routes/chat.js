@@ -19,7 +19,7 @@ router.post("/", async (req, res) => {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "llama3-8b-8192",
+          model: "llama-3.1-8b-instant",
           messages: [
             { role: "system", content: "You are a helpful assistant." },
             { role: "user", content: message }
@@ -31,17 +31,14 @@ router.post("/", async (req, res) => {
 
     const data = await response.json();
 
-    // 🔍 DEBUG LOG (important)
-    console.log("GROQ RAW RESPONSE:", JSON.stringify(data, null, 2));
-
     let reply = "No response from AI";
 
-    if (data?.choices && data.choices.length > 0) {
+    if (data?.choices?.length) {
       reply = data.choices[0].message?.content || reply;
     }
 
     if (data?.error) {
-      reply = `Groq Error: ${data.error.message || "Unknown error"}`;
+      reply = `Groq Error: ${data.error.message}`;
     }
 
     res.json({ reply });
@@ -53,4 +50,3 @@ router.post("/", async (req, res) => {
 });
 
 export default router;
-
