@@ -1,8 +1,10 @@
+
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 
 const API_URL = import.meta.env.VITE_API_URL;
+console.log("VITE_API_URL =", API_URL);
 
 const Chatbot = () => {
   const [open, setOpen] = useState(false);
