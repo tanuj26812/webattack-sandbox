@@ -1,27 +1,46 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
 import chatRoute from "./routes/chat.js";
+
+dotenv.config();
 
 const app = express();
 
-// ✅ ALLOW FRONTEND
-app.use(cors({
-  origin: true,
-  credentials: true
-}));
+/* ======================
+   MIDDLEWARE
+====================== */
 
+// ✅ CORS – allow Netlify frontend
+app.use(
+  cors({
+    origin: "*", // OK for demo; restrict later if needed
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 
+// ✅ Parse JSON bodies
 app.use(express.json());
 
-// routes
+/* ======================
+   ROUTES
+====================== */
+
 app.use("/api/chat", chatRoute);
 
-// start server
+// Optional health check (recommended)
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", message: "Backend is running" });
+});
+
+/* ======================
+   START SERVER
+====================== */
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
 });
+
