@@ -3,39 +3,41 @@ import express from "express";
 const router = express.Router();
 
 router.post("/", async (req, res) => {
-  const userMessage = req.body.message;
+  const { message } = req.body;
+
+  if (!message) {
+    return res.status(400).json({ reply: "No message provided" });
+  }
 
   try {
     const response = await fetch(
-      "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta",
+      "https://api.groq.com/openai/v1/chat/completions",
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.HF_API_KEY}`,
+          "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          inputs: userMessage
+          model: "llama3-8b-8192",
+          messages: [
+            { role: "system", content: "You are a helpful assistant." },
+            { role: "user", content: message }
+          ]
         })
       }
     );
 
     const data = await response.json();
 
-    let reply = "No response from AI";
-
-    if (Array.isArray(data) && data[0]?.generated_text) {
-      reply = data[0].generated_text;
-    } else if (data?.generated_text) {
-      reply = data.generated_text;
-    } else if (data?.error) {
-      reply = `HF Error: ${data.error}`;
-    }
+    const reply =
+      data?.choices?.[0]?.message?.content ??
+      "No response from AI";
 
     res.json({ reply });
 
   } catch (err) {
-    console.error("CHAT ERROR:", err.message);
+    console.error("GROQ ERROR:", err.message);
     res.status(500).json({ reply: "AI service unavailable" });
   }
 });
