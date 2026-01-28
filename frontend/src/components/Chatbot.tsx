@@ -2,6 +2,14 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 
+const API_BASE =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? "" : null);
+
+if (!API_BASE && import.meta.env.PROD) {
+  console.error("❌ VITE_API_URL is missing in production build");
+}
+
 const Chatbot = () => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<string[]>([]);
@@ -18,21 +26,26 @@ const Chatbot = () => {
     setMessages((prev) => [...prev, `**You:** ${input}`]);
 
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch(`${API_BASE}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: `You are assisting inside WebAttack Sandbox.
 User is on the Home page.
-User says: ${input}`
+User says: ${input}`,
+          lab: "WebAttack Sandbox"
         })
       });
 
-      if (!res.ok) throw new Error("API error");
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "API error");
+      }
 
       const data = await res.json();
       setMessages((prev) => [...prev, `**Bot:**\n${data.reply}`]);
     } catch (err) {
+      console.error("Chat error:", err);
       setMessages((prev) => [
         ...prev,
         "**Bot:** Backend not reachable"
@@ -83,7 +96,7 @@ User says: ${input}`
             bottom: 80,
             right: 20,
             width: 340,
-            height: 450,
+            height:zel500,
             background: theme.bg,
             color: theme.text,
             border: `1px solid ${theme.border}`,
@@ -141,3 +154,4 @@ User says: ${input}`
 };
 
 export default Chatbot;
+
