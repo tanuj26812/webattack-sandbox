@@ -14,6 +14,7 @@ const Chatbot = () => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<string[]>([]);
   const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // ✅ NEW
 
   // Default dark mode
   const [dark, setDark] = useState(
@@ -21,9 +22,13 @@ const Chatbot = () => {
   );
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return; // ✅ Prevent spam
 
-    setMessages((prev) => [...prev, `**You:** ${input}`]);
+    const userMessage = input;
+    setInput("");
+    setIsLoading(true); // ✅ Lock UI
+
+    setMessages((prev) => [...prev, `**You:** ${userMessage}`]);
 
     try {
       const res = await fetch(`${API_BASE}/api/chat`, {
@@ -32,7 +37,7 @@ const Chatbot = () => {
         body: JSON.stringify({
           message: `You are assisting inside WebAttack Sandbox.
 User is on the Home page.
-User says: ${input}`,
+User says: ${userMessage}`,
           lab: "WebAttack Sandbox"
         })
       });
@@ -50,9 +55,9 @@ User says: ${input}`,
         ...prev,
         "**Bot:** Backend not reachable"
       ]);
+    } finally {
+      setIsLoading(false); // ✅ Unlock UI
     }
-
-    setInput("");
   };
 
   const theme = {
@@ -96,7 +101,7 @@ User says: ${input}`,
             bottom: 80,
             right: 20,
             width: 340,
-            height:450,
+            height: 450,
             background: theme.bg,
             color: theme.text,
             border: `1px solid ${theme.border}`,
@@ -133,20 +138,48 @@ User says: ${input}`,
             </ReactMarkdown>
           ))}
 
+          {/* Typing Indicator */}
+          {isLoading && (
+            <div style={{ fontStyle: "italic", opacity: 0.7 }}>
+              🤖 Bot is typing...
+            </div>
+          )}
+
           {/* Input */}
           <input
             value={input}
+            disabled={isLoading} // ✅ Disable while waiting
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask text or code..."
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                sendMessage(); // ✅ Enter to send
+              }
+            }}
+            placeholder={
+              isLoading ? "Waiting for AI response..." : "Ask text or code..."
+            }
             style={{
               width: "100%",
               marginTop: 8,
               background: dark ? "#1e1e1e" : "#fff",
-              color: theme.text
+              color: theme.text,
+              opacity: isLoading ? 0.6 : 1
             }}
           />
 
-          <button onClick={sendMessage}>Send</button>
+          <button
+            onClick={sendMessage}
+            disabled={isLoading} // ✅ Cooldown
+            style={{
+              marginTop: 6,
+              width: "100%",
+              opacity: isLoading ? 0.6 : 1,
+              cursor: isLoading ? "not-allowed" : "pointer"
+            }}
+          >
+            {isLoading ? "Sending..." : "Send"}
+          </button>
         </div>
       )}
     </>
@@ -154,4 +187,5 @@ User says: ${input}`,
 };
 
 export default Chatbot;
+
 
