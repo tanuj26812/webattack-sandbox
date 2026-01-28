@@ -1,32 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
+import { Shield, Sun, Moon, Send } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 
 const API_BASE =
   import.meta.env.VITE_API_URL ||
   (import.meta.env.DEV ? "" : null);
 
-if (!API_BASE && import.meta.env.PROD) {
-  console.error("❌ VITE_API_URL is missing in production build");
-}
-
 const Chatbot = () => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<string[]>([]);
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // ✅ NEW
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Default dark mode
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  // Detect site theme from <html>
   const [dark, setDark] = useState(
-    localStorage.getItem("chat-dark") !== "false"
+    document.documentElement.classList.contains("dark")
   );
 
+  // Auto-scroll on new messages
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isLoading]);
+
+  // Sync theme with site
+  useEffect(() => {
+    if (dark) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("chat-dark", "true");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("chat-dark", "false");
+    }
+  }, [dark]);
+
   const sendMessage = async () => {
-    if (!input.trim() || isLoading) return; // ✅ Prevent spam
+    if (!input.trim() || isLoading) return;
 
     const userMessage = input;
     setInput("");
-    setIsLoading(true); // ✅ Lock UI
+    setIsLoading(true);
 
     setMessages((prev) => [...prev, `**You:** ${userMessage}`]);
 
@@ -35,151 +50,125 @@ const Chatbot = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: `You are assisting inside WebAttack Sandbox.
-User is on the Home page.
+          message: `You are the AI mentor inside WebAttack Sandbox.
+User is on the current lab interface.
 User says: ${userMessage}`,
           lab: "WebAttack Sandbox"
         })
       });
 
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "API error");
-      }
-
       const data = await res.json();
-      setMessages((prev) => [...prev, `**Bot:**\n${data.reply}`]);
-    } catch (err) {
-      console.error("Chat error:", err);
+      setMessages((prev) => [...prev, `**AI:**\n${data.reply}`]);
+    } catch {
       setMessages((prev) => [
         ...prev,
-        "**Bot:** Backend not reachable"
+        "**AI:** Secure channel lost. Backend unreachable."
       ]);
     } finally {
-      setIsLoading(false); // ✅ Unlock UI
+      setIsLoading(false);
     }
-  };
-
-  const theme = {
-    bg: dark ? "#121212" : "#ffffff",
-    text: dark ? "#eaeaea" : "#000000",
-    border: dark ? "#333" : "#ccc"
   };
 
   return (
     <>
-      {/* Floating button */}
+      {/* Floating Cyber Node */}
       <button
-        className="chatbot-floating-btn"
+        type="button"
         onClick={() => setOpen(!open)}
-        style={{
-          position: "fixed",
-          bottom: 24,
-          right: 24,
-          zIndex: 999,
-          width: 56,
-          height: 56,
-          borderRadius: "50%",
-          fontSize: "26px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#2563eb",
-          color: "#fff",
-          border: "none",
-          cursor: "pointer",
-          boxShadow: "0 6px 16px rgba(0,0,0,0.3)"
-        }}
+        aria-label="Toggle AI Security Assistant"
+        className="fixed bottom-6 right-6 z-[999]
+                   w-14 h-14 rounded-full
+                   bg-primary/20 border border-primary
+                   cyber-glow-strong
+                   flex items-center justify-center
+                   hover:bg-primary/30 transition-all"
       >
-        🤖
+        <Shield className="text-primary w-6 h-6" />
       </button>
 
       {open && (
         <div
-          style={{
-            position: "fixed",
-            bottom: 80,
-            right: 20,
-            width: 340,
-            height: 450,
-            background: theme.bg,
-            color: theme.text,
-            border: `1px solid ${theme.border}`,
-            padding: 10,
-            overflowY: "auto",
-            zIndex: 999
-          }}
+          className="fixed bottom-24 right-6 z-[999]
+                     w-[360px] h-[460px]
+                     cyber-card cyber-border-glow
+                     flex flex-col"
         >
-          {/* Dark mode toggle */}
-          <button
-            onClick={() => {
-              localStorage.setItem("chat-dark", (!dark).toString());
-              setDark(!dark);
-            }}
-          >
-            {dark ? "☀️" : "🌙"}
-          </button>
+          {/* Header */}
+          <div className="flex items-center justify-between mb-2 pb-2 border-b border-border">
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-primary" />
+              <span className="text-sm font-mono cyber-text-glow">
+                AI Security Assistant
+              </span>
+            </div>
+
+            <button
+              onClick={() => setDark((prev) => !prev)}
+              className="text-muted-foreground hover:text-primary transition"
+            >
+              {dark ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+          </div>
 
           {/* Messages */}
-          {messages.map((m, i) => (
-            <ReactMarkdown
-              key={i}
-              components={{
-                code({ children }) {
-                  return (
-                    <SyntaxHighlighter language="javascript">
-                      {String(children)}
-                    </SyntaxHighlighter>
-                  );
-                }
-              }}
-            >
-              {m}
-            </ReactMarkdown>
-          ))}
+          <div className="flex-1 overflow-y-auto space-y-3 text-sm font-mono pr-1">
+            {messages.map((m, i) => (
+              <ReactMarkdown
+                key={i}
+                components={{
+                  code({ children }) {
+                    return (
+                      <SyntaxHighlighter language="javascript">
+                        {String(children)}
+                      </SyntaxHighlighter>
+                    );
+                  }
+                }}
+              >
+                {m}
+              </ReactMarkdown>
+            ))}
 
-          {/* Typing Indicator */}
-          {isLoading && (
-            <div style={{ fontStyle: "italic", opacity: 0.7 }}>
-              🤖 Bot is typing...
-            </div>
-          )}
+            {isLoading && (
+              <div className="text-muted-foreground italic">
+                ▸ AI analyzing security context...
+              </div>
+            )}
+
+            {/* Scroll anchor */}
+            <div ref={bottomRef} />
+          </div>
 
           {/* Input */}
-          <input
-            value={input}
-            disabled={isLoading} // ✅ Disable while waiting
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                sendMessage(); // ✅ Enter to send
+          <div className="mt-3 flex gap-2">
+            <input
+              value={input}
+              disabled={isLoading}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+              placeholder={
+                isLoading
+                  ? "Waiting for secure response..."
+                  : "Ask about vulnerabilities, exploits, or defenses..."
               }
-            }}
-            placeholder={
-              isLoading ? "Waiting for AI response..." : "Ask text or code..."
-            }
-            style={{
-              width: "100%",
-              marginTop: 8,
-              background: dark ? "#1e1e1e" : "#fff",
-              color: theme.text,
-              opacity: isLoading ? 0.6 : 1
-            }}
-          />
+              className="flex-1 cyber-input px-3 py-2 text-sm"
+            />
 
-          <button
-            onClick={sendMessage}
-            disabled={isLoading} // ✅ Cooldown
-            style={{
-              marginTop: 6,
-              width: "100%",
-              opacity: isLoading ? 0.6 : 1,
-              cursor: isLoading ? "not-allowed" : "pointer"
-            }}
-          >
-            {isLoading ? "Sending..." : "Send"}
-          </button>
+            <button
+              type="button"
+              onClick={sendMessage}
+              disabled={isLoading}
+              aria-label="Send message"
+              className="cyber-button px-3 rounded-md flex items-center justify-center"
+            >
+              <Send size={16} />
+            </button>
+          </div>
         </div>
       )}
     </>
@@ -187,5 +176,8 @@ User says: ${userMessage}`,
 };
 
 export default Chatbot;
+
+
+
 
 
